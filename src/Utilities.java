@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.BufferedReader;
 
 import java.io.Writer;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.FileWriter;
 import java.io.BufferedWriter;
 
@@ -26,6 +28,10 @@ import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
 
 import java.nio.file.Path;
+
+import java.net.MalformedURLException;
+
+import freenet.keys.FreenetURI;
 
 public class Utilities {
 	public static byte[] tryEncodeASCII(String s) {
@@ -51,8 +57,11 @@ public class Utilities {
 	public static void copyStream(InputStream in, OutputStream out, int bufferSize) throws IOException {
 		byte[] copyBuffer = new byte[bufferSize];
 		int readBytes = 1;
-		while (readBytes > 0) {
+		while (true) {
 			readBytes = in.read(copyBuffer);
+			if (readBytes <= 0) {
+				break;
+			}
 			out.write(copyBuffer, 0, readBytes);
 		}
 	}
@@ -85,8 +94,13 @@ public class Utilities {
 
 		return sb.toString();
 	}
-	public static void write(File file, String data) {
-		
+	public static void write(Path p, String data) throws IOException {
+		write(p.toFile(), data);
+	}
+	public static void write(File file, String data) throws IOException {
+		try (Writer w = writer(file)) {
+			w.append(data);
+		}	
 	}
 
 	public static class UnpackException extends Exception {
@@ -106,5 +120,12 @@ public class Utilities {
 		} else {
 			return set.iterator().next();
 		}
+	}
+
+	public static String throwableInfo(Throwable t) {
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		t.printStackTrace(pw);
+		return sw.toString();
 	}
 }
